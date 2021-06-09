@@ -1,61 +1,80 @@
 echo "Welcome! Let's start setting up your system. It could take more than 10 minutes, be patient"
 
+echo 'Installing latest git' 
+sudo apt install git
+
 echo "What name do you want to use in GIT user.name?"
-echo "For example, mine will be \"Luke Morales\""
 read git_config_user_name
 
 echo "What email do you want to use in GIT user.email?"
-echo "For example, mine will be \"lukemorales@live.com\""
 read git_config_user_email
 
 echo "What is your github username?"
-echo "For example, mine will be \"lukemorales\""
 read username
-
-cd ~ && sudo apt-get update
-
-echo 'Installing curl' 
-sudo apt-get install curl -y
-
-echo 'Installing neofetch' 
-sudo apt-get install neofetch -y
-
-echo 'Installing tool to handle clipboard via CLI'
-sudo apt-get install xclip -y
-
-echo 'Installing latest git' 
-sudo add-apt-repository ppa:git-core/ppa -y
-sudo apt-get update && sudo apt-get install git -y
-
-echo 'Installing python3-pip'
-sudo apt-get install python3-pip -y
-
-echo 'Installing getgist to download dot files from gist'
-sudo pip3 install getgist
-export GETGIST_USER=$username
-
-if [$XDG_CURRENT_DESKTOP == 'KDE'] ; then
-    echo 'Cloning your Konsole configs from gist'
-    cd ~/.local/share/konsole && getmy OmniKonsole.profile && getmy OmniTheme.colorscheme
-
-    echo 'Installing Latte Dock'
-    sudo add-apt-repository ppa:kubuntu-ppa/backports -y
-    sudo apt-get update && sudo apt-get dist-upgrade
-    sudo apt-get install cmake extra-cmake-modules qtdeclarative5-dev libqt5x11extras5-dev libkf5iconthemes-dev libkf5plasma-dev libkf5windowsystem-dev libkf5declarative-dev libkf5xmlgui-dev libkf5activities-dev build-essential libxcb-util-dev libkf5wayland-dev git gettext libkf5archive-dev libkf5notifications-dev libxcb-util0-dev libsm-dev libkf5crash-dev libkf5newstuff-dev libxcb-shape0-dev libxcb-randr0-dev libx11-dev libx11-xcb-dev -y
-    sudo git clone https://github.com/KDE/latte-dock.git /usr/local/latte-dock
-    cd /usr/local/latte-dock && sudo sh install.sh
-
-    echo 'Installing Kvantum Manager'
-    sudo add-apt-repository ppa:papirus/papirus -y
-    sudo apt-get update && sudo apt install qt5-style-kvantum -y
-fi
 
 echo "Setting up your git global user name and email"
 git config --global user.name "$git_config_user_name"
 git config --global user.email $git_config_user_email
 
-echo 'Cloning your .gitconfig from gist'
-getmy .gitconfig
+cd ~ && sudo apt update
+
+echo 'Installing build-essential' 
+sudo apt install build-essential -y
+
+echo 'Installing libs'
+sudo apt install libssl-dev ncurses-term ack-grep silversearcher-ag font-config -y 
+
+echo 'Installing curl' 
+sudo apt install curl -y
+
+echo 'Installing tool to handle clipboard via CLI'
+sudo apt install xclip -y
+
+echo 'Installing JDK'
+sudo apt install default-jdk -y
+
+echo 'Installing asdf'
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
+echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.bashrc
+
+echo 'Installing Nodejs'
+asdf plugin-add nodejs 
+bash -c '${ASDF_DATA_DIR:=$HOME/.asdf}/plugins/nodejs/bin/import-previous-release-team-keyring' # Fix for problems with OpenPGP signatures in older versions
+asdf install nodejs latest
+latest_version=$(asdf latest nodejs)
+asdf global nodejs $latest_version
+node -v
+
+echo 'Installing Golang'
+asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
+
+echo 'Installing Erlang'
+asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
+sudo apt-get -y install autoconf m4 libncurses5-dev libwxgtk3.0-gtk3-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev unixodbc-dev xsltproc fop libxml2-utils libncurses-dev openjdk-11-jdk
+
+echo 'Installing Elixir'
+asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
+asdf install elixir latest
+latest_version=$(asdf latest elixir)
+asdf global elixir $latest_version
+
+echo 'Installing Kotlin'
+asdf plugin-add kotlin https://github.com/asdf-community/asdf-kotlin.git
+asdf install kotlin latest
+latest_version=$(asdf latest kotlin)
+asdf global kotlin $latest_version
+kotlin -version
+
+echo 'Installing Python'
+asdf plugin-add python
+asdf install python latest
+latest_version=$(asdf latest python)
+asdf global python $latest_version
+python -
+
+# echo 'Cloning your .gitconfig from gist'
+# getmy .gitconfig
 
 echo 'Generating a SSH Key'
 ssh-keygen -t rsa -b 4096 -C $git_config_user_email
@@ -80,27 +99,10 @@ ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/the
 source ~/.zshrc
 
 echo 'Installing FiraCode'
-sudo apt-get install fonts-firacode -y
-
-echo 'Installing NVM' 
-sh -c "$(curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash)"
-
-export NVM_DIR="$HOME/.nvm" && (
-git clone https://github.com/creationix/nvm.git "$NVM_DIR"
-cd "$NVM_DIR"
-git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
-) && \. "$NVM_DIR/nvm.sh"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+sudo apt install fonts-firacode -y
 
 source ~/.zshrc
 clear
-
-echo 'Installing NodeJS LTS'
-nvm --version
-nvm install --lts
-nvm current
 
 echo 'Installing Yarn'
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -157,14 +159,8 @@ wget -c https://github.com/Paxa/postbird/releases/download/0.8.4/Postbird_0.8.4_
 sudo dpkg -i Postbird_0.8.4_amd64.deb
 sudo apt-get install -f -y && rm Postbird_0.8.4_amd64.deb
 
-echo 'Installing Insomnia Core and Omni Theme' 
-echo "deb https://dl.bintray.com/getinsomnia/Insomnia /" \
-  | sudo tee -a /etc/apt/sources.list.d/insomnia.list
-wget --quiet -O - https://insomnia.rest/keys/debian-public.key.asc \
-  | sudo apt-key add -
-sudo apt-get update && sudo apt-get install insomnia -y
-mkdir ~/.config/Insomnia/plugins && cd ~/.config/Insomnia/plugins
-git clone https://github.com/Rocketseat/insomnia-omni.git omni-theme && cd ~
+echo 'Installing Postman' 
+sudo snap install postman
 
 echo 'Installing Android Studio'
 sudo add-apt-repository ppa:maarten-fonville/android-studio -y
@@ -179,19 +175,8 @@ wget -O discord.deb "https://discordapp.com/api/download?platform=linux&format=d
 sudo dpkg -i discord.deb
 sudo apt-get install -f -y && rm discord.deb
 
-echo 'Installing Zoom'
-wget -c https://zoom.us/client/latest/zoom_amd64.deb
-sudo dpkg -i zoom_amd64.deb
-sudo apt-get install -f -y && rm zoom_amd64.deb
-
 echo 'Installing Spotify' 
-curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
-sudo apt-get update && sudo apt-get install spotify-client -y
-
-echo 'Installing Peek' 
-sudo add-apt-repository ppa:peek-developers/stable -y
-sudo apt-get update && sudo apt-get install peek -y
+sudo snap install spotify
 
 echo 'Installing OBS Studio'
 sudo apt-get install ffmpeg && sudo snap install obs-studio
@@ -200,13 +185,6 @@ echo 'Enabling KVM for Android Studio'
 sudo apt-get install qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virt-manager -y
 sudo adduser $USER libvirt
 sudo adduser $USER libvirt-qemu
-
-echo 'Installing Robo3t'
-sudo snap install robo3t-snap
-
-echo 'Installing Lotion'
-sudo git clone https://github.com/puneetsl/lotion.git /usr/local/lotion
-cd /usr/local/lotion && sudo ./install.sh
 
 echo 'Updating and Cleaning Unnecessary Packages'
 sudo -- sh -c 'apt-get update; apt-get upgrade -y; apt-get full-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
@@ -234,4 +212,4 @@ read gpg_key_id
 git config --global user.signingkey $gpg_key_id
 gpg --armor --export $gpg_key_id
 
-echo 'All setup, enjoy!'
+echo 'Setup finished!!'
