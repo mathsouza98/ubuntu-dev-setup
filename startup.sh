@@ -38,6 +38,9 @@ sudo apt install libssl-dev ncurses-term ack-grep silversearcher-ag font-config 
 echo 'Installing curl' 
 sudo apt install curl -y
 
+echo 'Installing vim'
+sudo apt install vim -y
+
 # INSTALL PROGRAMMING LANGUAGES & VMs
 
 echo 'Installing JDK'
@@ -106,31 +109,8 @@ echo 'Installing getgist to download dot files from gist'
 sudo pip3 install getgist
 export GETGIST_USER=$username
 
-echo 'Installing ZSH'
-sudo apt-get install zsh -y
-sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
-chsh -s $(which zsh)
-
-echo 'Cloning your .zshrc from gist'
-getmy .zshrc
-
-echo 'Indexing snap to ZSH'
-sudo chmod 777 /etc/zsh/zprofile
-echo "emulate sh -c 'source /etc/profile.d/apps-bin-path.sh'" >> /etc/zsh/zprofile
-
-echo 'Installing Zinit'
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/zdharma/zinit/master/doc/install.sh)"
-
-echo 'Installing Spaceship ZSH Theme'
-git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
-ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
-source ~/.zshrc
-
 echo 'Installing FiraCode'
 sudo apt install fonts-firacode -y
-
-source ~/.zshrc
-clear
 
 echo 'Installing Yarn'
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -238,5 +218,27 @@ clear
 
 echo 'Bumping the max file watchers'
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+echo 'Installing ZSH'
+sudo apt-get install zsh -y
+sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
+
+echo 'Cloning your .zshrc from gist'
+getmy .zshrc
+
+echo 'Indexing snap to ZSH'
+sudo chmod 777 /etc/zsh/zprofile
+echo "emulate sh -c 'source /etc/profile.d/apps-bin-path.sh'" >> /etc/zsh/zprofile
+
+echo 'Installing Zinit'
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/zdharma/zinit/master/doc/install.sh)"
+
+echo 'Installing Spaceship ZSH Theme'
+git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH/themes/spaceship-prompt"
+ln -s "$ZSH/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH/themes/spaceship.zsh-theme"
+source ~/.zshrc
+
+# Set ZSH as default shell for current user
+chsh -s $(which zsh)
 
 echo 'Setup finished!!'
