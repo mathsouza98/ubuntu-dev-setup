@@ -16,6 +16,17 @@ echo "Setting up your git global user name and email"
 git config --global user.name "$git_config_user_name"
 git config --global user.email $git_config_user_email
 
+echo 'Installing tool to handle clipboard via CLI'
+sudo apt install xclip -y
+
+echo 'Generating a SSH Key'
+ssh-keygen -t rsa -b 4096 -C $git_config_user_email
+ssh-add ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub | xclip -selection clipboard
+
+echo 'Copy your SSH pub key to Github'
+read -p "Press enter to continue"
+
 cd ~ && sudo apt update
 
 echo 'Installing build-essential' 
@@ -27,8 +38,7 @@ sudo apt install libssl-dev ncurses-term ack-grep silversearcher-ag font-config 
 echo 'Installing curl' 
 sudo apt install curl -y
 
-echo 'Installing tool to handle clipboard via CLI'
-sudo apt install xclip -y
+# INSTALL PROGRAMMING LANGUAGES & VMs
 
 echo 'Installing JDK'
 sudo apt install default-jdk -y
@@ -48,10 +58,16 @@ node -v
 
 echo 'Installing Golang'
 asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
+asdf install golang latest
+latest_version=$(asdf latest golang)
+asdf global golang $latest_version
 
 echo 'Installing Erlang'
 asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
 sudo apt-get -y install autoconf m4 libncurses5-dev libwxgtk3.0-gtk3-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev unixodbc-dev xsltproc fop libxml2-utils libncurses-dev openjdk-11-jdk
+asdf install erlang latest
+latest_version=$(asdf latest erlang)
+asdf global erlang $latest_version
 
 echo 'Installing Elixir'
 asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
@@ -68,18 +84,27 @@ kotlin -version
 
 echo 'Installing Python'
 asdf plugin-add python
-asdf install python latest
-latest_version=$(asdf latest python)
-asdf global python $latest_version
-python -
+asdf install python 3.9.5
+asdf install python 2.7.18
+asdf global python 3.9.5 2.7.18
+python -v
 
-# echo 'Cloning your .gitconfig from gist'
-# getmy .gitconfig
+echo 'Installing pip3'
+sudo apt update
+sudo apt install python3-pip
+pip3 --version
 
-echo 'Generating a SSH Key'
-ssh-keygen -t rsa -b 4096 -C $git_config_user_email
-ssh-add ~/.ssh/id_rsa
-cat ~/.ssh/id_rsa.pub | xclip -selection clipboard
+echo 'Installing pip2'
+sudo add-apt-repository universe
+sudo apt update 
+sudo apt install python2
+curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+sudo python2 get-pip.py
+pip2 --version
+
+echo 'Installing getgist to download dot files from gist'
+sudo pip3 install getgist
+export GETGIST_USER=$username
 
 echo 'Installing ZSH'
 sudo apt-get install zsh -y
@@ -92,6 +117,9 @@ getmy .zshrc
 echo 'Indexing snap to ZSH'
 sudo chmod 777 /etc/zsh/zprofile
 echo "emulate sh -c 'source /etc/profile.d/apps-bin-path.sh'" >> /etc/zsh/zprofile
+
+echo 'Installing Zinit'
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/zdharma/zinit/master/doc/install.sh)"
 
 echo 'Installing Spaceship ZSH Theme'
 git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
@@ -110,49 +138,71 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/source
 sudo apt-get update && sudo apt-get install --no-install-recommends yarn
 echo '"--emoji" true' >> ~/.yarnrc
 
-echo 'Installing Typescript, AdonisJS CLI and Lerna'
-yarn global add typescript @adonisjs/cli lerna
+echo 'Installing Typescript'
+yarn global add typescript
 clear
 
 echo 'Installing VSCode'
-curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
-sudo apt-get install apt-transport-https -y
-sudo apt-get update && sudo apt-get install code -y
+sudo snap install --classic code
 
-echo 'Installing Code Settings Sync'
-code --install-extension Shan.code-settings-sync
-sudo apt-get install gnome-keyring -y
-cls
+# INSTALLING DATABASES
+echo 'Installing PostgreSQL'
+sudo apt-get install postgresql-12
+sudo service postgresql stop
 
-echo 'Installing Vivaldi' 
-wget -qO- https://repo.vivaldi.com/archive/linux_signing_key.pub | sudo apt-key add -
-sudo add-apt-repository 'deb https://repo.vivaldi.com/archive/deb/ stable main' -y
-sudo apt update && sudo apt install vivaldi-stable
+echo 'Installing Redis'
+sudo apt install redis-server
+sudo service redis-server stop
 
-echo 'Launching Vivaldi on Github so you can paste your keys'
-vivaldi https://github.com/settings/keys </dev/null >/dev/null 2>&1 & disown
+echo 'Installing MongoDB'
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt update
+sudo apt install -y mongodb-org
+sudo service mongod stop
+
+echo 'Installing Memcached'
+sudo apt install memcached
+sudo apt install libmemcached-tools
 
 echo 'Installing Docker'
-sudo apt-get purge docker docker-engine docker.io
-sudo apt-get install docker.io -y
-sudo systemctl start docker
-sudo systemctl enable docker
-docker --version
-
+sudo apt-get update
+sudo apt-get -y install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
 sudo groupadd docker
 sudo usermod -aG docker $USER
 sudo chmod 777 /var/run/docker.sock
+docker run hello-world
 
 echo 'Installing docker-compose'
 sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 
-echo 'Installing Heroku CLI'
-curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-heroku --version
+echo 'Installing postgres container'
+docker pull postgres
+mkdir -p $HOME/docker/volumes/postgres
+docker run --rm --name pg-docker -e POSTGRES_PASSWORD=docker -d -p 5432:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres
+echo 'Connect to container in another terminal using the following command:'
+echo 'psql -h localhost -U postgres -d postgres'
+read -p "Press enter to continue"
+
+echo 'Installing mongodb container'
+docker run --name mongodb -p 27017:27017 -d -t mongo
+
+echo 'Installing redis container'
+docker run --name redis_skylab -p 6379:6379 -d -t redis:alpine
+clear
 
 echo 'Installing PostBird'
 wget -c https://github.com/Paxa/postbird/releases/download/0.8.4/Postbird_0.8.4_amd64.deb
@@ -165,10 +215,6 @@ sudo snap install postman
 echo 'Installing Android Studio'
 sudo add-apt-repository ppa:maarten-fonville/android-studio -y
 sudo apt-get update && sudo apt-get install android-studio -y
-
-echo 'Installing VLC'
-sudo apt-get install vlc -y
-sudo apt-get install vlc-plugin-access-extra libbluray-bdj libdvdcss2 -y
 
 echo 'Installing Discord'
 wget -O discord.deb "https://discordapp.com/api/download?platform=linux&format=deb"
@@ -190,26 +236,7 @@ echo 'Updating and Cleaning Unnecessary Packages'
 sudo -- sh -c 'apt-get update; apt-get upgrade -y; apt-get full-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
 clear
 
-echo 'Installing postgis container'
-docker run --name postgis -e POSTGRES_PASSWORD=docker -p 5432:5432 -d kartoza/postgis
-
-echo 'Installing mongodb container'
-docker run --name mongodb -p 27017:27017 -d -t mongo
-
-echo 'Installing redis container'
-docker run --name redis_skylab -p 6379:6379 -d -t redis:alpine
-clear
-
 echo 'Bumping the max file watchers'
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-
-echo 'Generating GPG key'
-gpg --full-generate-key
-gpg --list-secret-keys --keyid-format LONG
-
-echo 'Paste the GPG key ID to export and add to your global .gitconfig'
-read gpg_key_id
-git config --global user.signingkey $gpg_key_id
-gpg --armor --export $gpg_key_id
 
 echo 'Setup finished!!'
