@@ -196,6 +196,9 @@ echo 'Installing Android Studio'
 sudo add-apt-repository ppa:maarten-fonville/android-studio -y
 sudo apt-get update && sudo apt-get install android-studio -y
 
+echo 'Installing Intellij educational'
+sudo snap install intellij-idea-educational --classic
+
 echo 'Installing Discord'
 wget -O discord.deb "https://discordapp.com/api/download?platform=linux&format=deb"
 sudo dpkg -i discord.deb
