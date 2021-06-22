@@ -242,6 +242,10 @@ git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/theme
 ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
 source ~/.zshrc
 
+echo 'Adding asdf on zsh'
+echo ". $HOME/.asdf/asdf.sh" >> ~/.zshrc
+echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.zshrc
+
 # Set ZSH as default shell for current user
 chsh -s $(which zsh)
 
