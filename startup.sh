@@ -43,13 +43,13 @@ sudo apt install vim -y
 
 # INSTALL PROGRAMMING LANGUAGES & VMs
 
-echo 'Installing JDK'
-sudo apt install default-jdk -y
-
 echo 'Installing asdf'
 git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
 echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.bashrc
+
+echo 'Installing JDK'
+sudo apt install default-jdk -y
 
 echo 'Installing Nodejs'
 asdf plugin-add nodejs 
@@ -196,8 +196,9 @@ echo 'Installing Android Studio'
 sudo add-apt-repository ppa:maarten-fonville/android-studio -y
 sudo apt-get update && sudo apt-get install android-studio -y
 
-echo 'Installing Intellij ultimate'
-sudo snap install intellij-idea-ultimate --classic
+echo 'Installing Intellij'
+sudo snap install intellij-idea-educational --channel=2020.3/stable --classic
+
 
 echo 'Installing Discord'
 wget -O discord.deb "https://discordapp.com/api/download?platform=linux&format=deb"
@@ -205,7 +206,9 @@ sudo dpkg -i discord.deb
 sudo apt-get install -f -y && rm discord.deb
 
 echo 'Installing Spotify' 
-sudo snap install spotify
+curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg | sudo apt-key add - 
+echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
+sudo apt-get update && sudo apt-get install spotify-client
 
 echo 'Installing OBS Studio'
 sudo apt-get install ffmpeg && sudo snap install obs-studio
@@ -215,12 +218,30 @@ sudo apt-get install qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
 sudo adduser $USER libvirt
 sudo adduser $USER libvirt-qemu
 
+echo 'Installing SAM AWS CLI'
+wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+echo 'Output looks like this ->  <64-character SHA256 hash value> aws-sam-cli-linux-x86_64.zip ?'
+sha256sum aws-sam-cli-linux-x86_64.zip
+read -p "Press enter to continue"
+unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+sudo ./sam-installation/install
+sam --version
+
+echo 'Installing SAM AWS CLI'
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
 echo 'Updating and Cleaning Unnecessary Packages'
 sudo -- sh -c 'apt-get update; apt-get upgrade -y; apt-get full-upgrade -y; apt-get autoremove -y; apt-get autoclean -y'
 clear
 
 echo 'Bumping the max file watchers'
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+echo 'Installing gnome shell'
+sudo apt install gnome-shell-extensions
+sudo apt install chrome-gnome-shell
 
 echo 'Installing ZSH'
 sudo apt-get install zsh -y
@@ -237,14 +258,9 @@ echo 'Installing Zinit'
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/zdharma/zinit/master/doc/install.sh)"
 
 echo 'Installing Spaceship ZSH Theme'
-export ZSH_CUSTOM=~/.oh-my-zsh/custom
-git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
-ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
+git clone https://github.com/denysdovhan/spaceship-prompt.git "~/.oh-my.zsh/themes/spaceship-prompt"
+ln -s "~/.oh-my.zsh/themes/spaceship-prompt/spaceship.zsh-theme" "~/.oh-my.zsh/themes/spaceship.zsh-theme"
 source ~/.zshrc
-
-echo 'Adding asdf on zsh'
-echo ". $HOME/.asdf/asdf.sh" >> ~/.zshrc
-echo ". $HOME/.asdf/completions/asdf.bash" >> ~/.zshrc
 
 # Set ZSH as default shell for current user
 chsh -s $(which zsh)
